@@ -12,7 +12,8 @@ services:
       - db_root_password
       - db_password
     volumes:
-      - db_data:/var/lib/mysql
+      - /home/cmanuel-/data/mariadb:/var/lib/mysql
+      - ${USER_DATA}/mariadb:/var/lib/mysql
     networks:
       - inception
     expose:
