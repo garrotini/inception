@@ -26,9 +26,9 @@ if [ ! -d "$DATADIR/mysql" ]; then
         GRANT ALL PRIVILEGES ON $MARIADB_DATABASE.* TO '$MARIADB_USER'@'%';
         FLUSH PRIVILEGES;
 	EOF
+	chown mysql:mysql /tmp/init.sql;
 	chmod 600 /tmp/init.sql;
-	mariadbd --user=mysql --datadir="$DATADIR" --bootstrap < /tmp/init.sql;
-	rm -f /tmp/init.sql;
+	exec mariadbd --user=mysql --datadir="$DATADIR" --bind-address=0.0.0.0 --port=3306 --init-file=/tmp/init.sql;
 fi
 
 # phase 2 - run forever
