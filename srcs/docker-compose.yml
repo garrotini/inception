@@ -2,29 +2,26 @@ name: inception
 
 services:
   mariadb:
+    image: mariadb:0.1
     build:
       context: requirements/mariadb
       dockerfile: Dockerfile
-    image: mariadb
     container_name: mariadb
     env_file: .env
     secrets:
       - db_root_password
       - db_password
     volumes:
-      - /home/cmanuel-/data/mariadb:/var/lib/mysql
-      - ${USER_DATA}/mariadb:/var/lib/mysql
+      - db_data:/var/lib/mysql
     networks:
       - inception
-    expose:
-      - "3306"
     healthcheck:
       test: ["CMD", "mariadb-admin", "ping", "-h", "localhost", "--silent"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 30s                # first-run mariadb-install-db is slow
-    restart: unless-stopped
+      start_period: 30s
+    restart: always
 
   nginx:
     build:
@@ -33,7 +30,7 @@ services:
     image: nginx
     container_name: nginx
     ports:
-      - "443:443"                      # sole entrypoint, TLS only
+      - "443:443" 
     volumes:
       - wp_data:/var/www/html:ro       # serve static WP assets directly
     networks:
@@ -43,6 +40,7 @@ services:
 networks:
   inception:
     driver: bridge
+    name: inception_net
 
 volumes:
   db_data:
@@ -50,13 +48,13 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: ${DATA_DIR}/mariadb
+      device: /home/cmanuel-/data/mariadb
   wp_data:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: ${DATA_DIR}/wordpress
+      device: ${DATA}/wordpress
 
 secrets:
   db_root_password:

@@ -4,7 +4,7 @@ DATA = /home/cmanuel-/data
 all: build up
 
 build:
-	make -p ${DATA}/{mariadb,wordpress}
+	mkdir -p ${DATA}/mariadb ${DATA}/wordpress
 	docker compose -f ${COMPOSE_FILE} build mariadb nginx
 
 up:
@@ -14,25 +14,28 @@ down:
 	docker compose -f ${COMPOSE_FILE} down
 
 clean:
-	docker compose -f ${COMPOSE_FILE} down
-	rm -rf ${DATA}
+	docker compose -f ${COMPOSE_FILE} down -v --remove-orphans
+	docker system prune -af
 
 fclean: clean
-	docker image rm -f mary
+	sudo rm -rf ${DATA}/mariadb/*
+	sudo rm -rf ${DATA}/wordpress/*
+	docker volume prune -af
 
 re: fclean all
 
-t:
+tmaria:
 	echo "___SHOW DATABASES___"
-	docker exec mary mariadb -e "SHOW DATABASES;"
+	docker exec mariadb mariadb -e "SHOW DATABASES;"
 	echo "___SHOW GRANTS___"
-	docker exec mary mariadb -e "SHOW GRANTS FOR 'dbuser';"
+	docker exec mariadb mariadb -e "SHOW GRANTS FOR 'dbuser';"
 	echo "___SHOW GRANTS___"
-	docker exec mary mariadb -e "SHOW GRANTS FOR 'root';"
+	docker exec mariadb mariadb -e "SHOW GRANTS FOR 'root';"
 
-sh:
-	docker exec -it mary sh
+shmaria:
+	docker exec -it mariadb sh
 
 stop:
-	docker stop mary
+	docker ps -qa | xargs -r docker stop
 
+.PHONY: all build up down clean fclean re tmaria shmaria stop

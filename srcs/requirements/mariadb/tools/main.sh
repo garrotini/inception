@@ -4,6 +4,9 @@ set -e
 
 DATADIR=/var/lib/mysql
 
+MARIADB_PASSWORD=$(cat /run/secrets/db_password)
+MARIADB_ROOT_PASSWORD=$(cat /run/secrets/db_root_password)
+
 # runtime dirs — ran EVERY boot
 mkdir -p /run/mysqld
 chown -R mysql:mysql /run/mysqld
@@ -14,18 +17,16 @@ if [ ! -d "$DATADIR/mysql" ]; then
 	echo "First boot: initializing datadir...";
 	mkdir -p /run/mysqld "$DATADIR"
 	chown -R mysql:mysql "$DATADIR"
-	mariadb-install-db --user=mysql --datadir="$DATADIR" --auth-root-authentication-method=normal
+	mariadb-install-db --user=mysql --datadir="$DATADIR" --skip-test-db
 
 	cat > /tmp/init.sql <<-EOF
-        FLUSH PRIVILEGES;
-		DROP DATABASE IF EXISTS test;
 		CREATE DATABASE IF NOT EXISTS ${MARIADB_DATABASE};
-		CREATE USER 'root'@'%' IDENTIFIED BY '$MARIADB_ROOT_PASSWORD';
-        GRANT ALL ON *.* TO 'root'@'%' WITH GRANT OPTION;
+		ALTER USER 'root'@'localhost' IDENTIFIED VIA unix_socket OR mysql_native_password USING PASSWORD('$MARIADB_ROOT_PASSWORD');
 		CREATE USER IF NOT EXISTS '$MARIADB_USER'@'%' IDENTIFIED BY '$MARIADB_PASSWORD';
         GRANT ALL PRIVILEGES ON $MARIADB_DATABASE.* TO '$MARIADB_USER'@'%';
         FLUSH PRIVILEGES;
 	EOF
+	chmod 600 /tmp/init.sql;
 	mariadbd --user=mysql --datadir="$DATADIR" --bootstrap < /tmp/init.sql;
 	rm -f /tmp/init.sql;
 fi
