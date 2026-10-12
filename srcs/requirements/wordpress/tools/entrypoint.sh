@@ -6,10 +6,6 @@ MARIADB_PASSWORD="$(cat /run/secrets/db_password)"
 WP_ADMIN_PASSWORD="$(sed -n 1p /run/secrets/wp_credentials)"
 WP_USER_PASSWORD="$(sed -n 2p /run/secrets/wp_credentials)"
 
-echo ${MARIADB_PASSWORD}
-echo ${WP_ADMIN_PASSWORD}
-echo ${WP_USER_PASSWORD}
-
 # setup mariadb client
 echo "_ Config MariaDB... "
 # until mariadb \
