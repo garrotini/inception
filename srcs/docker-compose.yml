@@ -35,7 +35,7 @@ services:
       - db_root_password
       - db_password
     volumes:
-      - wp_data:/var/www/html:ro       # serve static WP assets directly
+      - wp_data:/var/www/html
     networks:
       - inception
     restart: unless-stopped

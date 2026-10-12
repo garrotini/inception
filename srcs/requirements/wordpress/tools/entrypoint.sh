@@ -1,6 +1,6 @@
 #!/bin/sh
 
-set -e
+# set -e
 
 MARIADB_PASSWORD="$(cat /run/secrets/db_password)"
 WP_ADMIN_PASSWORD="$(sed -n 1p /run/secrets/wp_credentials)"
@@ -46,8 +46,10 @@ if [ ! -f /var/www/html/wp-config.php ]; then
 	echo "___ WordPress has been configured ready! ___ "
 fi
 
-echo "___ WordPress should be running fine ___"
+echo "___ WordPress should be running fine ___";
 
+chown -R www-data:www-data /var/www/html
+chmod 664 -R /var/www/html
 
 exec php-fpm84 -F
 

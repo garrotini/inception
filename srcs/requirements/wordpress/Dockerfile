@@ -28,11 +28,11 @@ RUN wget https://wordpress.org/latest.zip && \
     cp -rf wordpress/* /var/www/html && \
     rm -rf wordpress latest.zip
 
-# run wordpress under an unprivileged user
+# create www-data user, so that www-data group and user run wordpress 
+# wordpress will be run by a non-root unprivileged user
 RUN set -x \
     && addgroup -g 82 -S www-data 2>/dev/null || true \
     && adduser -u 82 -D -S -G www-data www-data 2>/dev/null || true
-RUN chown -R www-data:www-data /var/www/html
 
 # copy config 
 COPY conf/www.conf /etc/php84/php-fpm.d/www.conf
@@ -41,6 +41,8 @@ COPY tools/entrypoint.sh /
 RUN	chmod +x /entrypoint.sh
 
 EXPOSE 9000
+
+RUN chown -R www-data:www-data /var/www/html
 
 ENTRYPOINT ["/entrypoint.sh"]
 
