@@ -57,7 +57,7 @@ services:
 networks:
   inception:
     driver: bridge
-    name: inception_net
+    name: inception
 
 volumes:
   db_data:
@@ -65,7 +65,7 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: /home/cmanuel-/data/mariadb
+      device: ${DATA}/mariadb
   wp_data:
     driver: local
     driver_opts:
