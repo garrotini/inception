@@ -18,10 +18,8 @@ clean:
 	docker system prune -af
 
 fclean: clean
-	sudo rm -rf ${DATA}/mariadb/*
-	sudo rm -rf ${DATA}/wordpress/*
-	# rm -rf ${DATA}/mariadb/*
-	# rm -rf ${DATA}/wordpress/*
+	sudo rm -rf ${DATA}/mariadb
+	sudo rm -rf ${DATA}/wordpress
 	docker volume prune -af
 
 re: fclean all
