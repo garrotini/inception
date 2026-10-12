@@ -43,16 +43,12 @@ if [ ! -f /var/www/html/wp-config.php ]; then
     sed -i "s/password_here/$MARIADB_PASSWORD/" wp-config.php
     sed -i "s/localhost/$MARIADB_HOST/" wp-config.php
 
-	echo "_ keypoint 1_ "
-
 	wp core install --url="https://$DOMAIN_NAME" \
 		--admin_user="$WP_ADMIN" \
 		--admin_email="$WP_ADMIN_EMAIL" \
 		--admin_password="$WP_ADMIN_PASSWORD" \
 		--title="$WP_TITLE" \
 		--allow-root
-
-	echo "_ keypoint 2_ "
 
     wp user create "$WP_USER" "$WP_USER_EMAIL" \
         --user_pass="$WP_USER_PASSWORD" \
