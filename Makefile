@@ -5,10 +5,10 @@ all: build up
 
 build:
 	mkdir -p ${DATA}/mariadb ${DATA}/wordpress
-	docker compose -f ${COMPOSE_FILE} build mariadb nginx
+	docker compose -f ${COMPOSE_FILE} build mariadb wordpress nginx
 
 up:
-	docker compose -f ${COMPOSE_FILE} up -d mariadb nginx
+	docker compose -f ${COMPOSE_FILE} up -d mariadb wordpress nginx
 
 down:
 	docker compose -f ${COMPOSE_FILE} down
@@ -20,6 +20,8 @@ clean:
 fclean: clean
 	sudo rm -rf ${DATA}/mariadb/*
 	sudo rm -rf ${DATA}/wordpress/*
+	# rm -rf ${DATA}/mariadb/*
+	# rm -rf ${DATA}/wordpress/*
 	docker volume prune -af
 
 re: fclean all
@@ -34,6 +36,9 @@ tmaria:
 
 shmaria:
 	docker exec -it mariadb sh
+
+shwp:
+	docker exec -it wordpress sh
 
 stop:
 	docker ps -qa | xargs -r docker stop

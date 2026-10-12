@@ -1,23 +1,34 @@
 #!/bin/sh
 
-# set -e
+set -e
 
 MARIADB_PASSWORD="$(cat /run/secrets/db_password)"
 WP_ADMIN_PASSWORD="$(sed -n 1p /run/secrets/wp_credentials)"
 WP_USER_PASSWORD="$(sed -n 2p /run/secrets/wp_credentials)"
 
+echo ${MARIADB_PASSWORD}
+echo ${WP_ADMIN_PASSWORD}
+echo ${WP_USER_PASSWORD}
+
 # setup mariadb client
 echo "_ Config MariaDB... "
-until mariadb \
-	--skip-ssl-verify-server-cert \
-	--host=${MARIADB_HOST} \
-	--port=3306 \
-	--user=${MARIADB_USER} \
+# until mariadb \
+# 	--skip-ssl-verify-server-cert \
+# 	--host=${MARIADB_HOST} \
+# 	--port=3306 \
+# 	--user=${MARIADB_USER} \
+# 	--password=${MARIADB_PASSWORD} \
+# 	--execute "SELECT 1 FROM information_schema.SCHEMATA WHERE SCHEMA_NAME='$MARIADB_DATABASE'" >/dev/null 2>&1
+# do
+# 	echo "_ waiting for MariaDB... "
+# 	sleep 1;
+# done
+
+until mariadb-admin ping --host=${MARIADB_HOST} \
+   	--user=${MARIADB_USER} \
 	--password=${MARIADB_PASSWORD} \
-	--execute "SELECT 1 FROM information_schema.SCHEMATA WHERE SCHEMA_NAME='$MARIADB_DATABASE'" >/dev/null 2>&1
-do
-	echo "_ waiting for MariaDB... "
-	sleep 1;
+	--silent;
+do sleep 1
 done
 
 echo "___ MariaDB is ready! ___ "
@@ -32,6 +43,8 @@ if [ ! -f /var/www/html/wp-config.php ]; then
     sed -i "s/password_here/$MARIADB_PASSWORD/" wp-config.php
     sed -i "s/localhost/$MARIADB_HOST/" wp-config.php
 
+	echo "_ keypoint 1_ "
+
 	wp core install --url="https://$DOMAIN_NAME" \
 		--admin_user="$WP_ADMIN" \
 		--admin_email="$WP_ADMIN_EMAIL" \
@@ -39,17 +52,19 @@ if [ ! -f /var/www/html/wp-config.php ]; then
 		--title="$WP_TITLE" \
 		--allow-root
 
+	echo "_ keypoint 2_ "
+
     wp user create "$WP_USER" "$WP_USER_EMAIL" \
         --user_pass="$WP_USER_PASSWORD" \
         --role=author \
         --allow-root
+
 	echo "___ WordPress has been configured ready! ___ "
+else
+	echo "___ WordPress should be running fine ___";
 fi
 
-echo "___ WordPress should be running fine ___";
-
 chown -R www-data:www-data /var/www/html
-chmod 664 -R /var/www/html
 
 exec php-fpm84 -F
 

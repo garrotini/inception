@@ -15,8 +15,9 @@ down:
 clean:
 	docker compose down wordpress
 	docker rm -f wordpress
+	rm -rf home/cmanuel-/data/wordpress
 
-t:
+sh:
 	docker exec -it wordpress sh
 
 alpine:
