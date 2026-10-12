@@ -21,7 +21,7 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
-    restart: always
+    restart: unless-stopped
 
   wordpress:
     build:
@@ -44,12 +44,12 @@ services:
     build:
       context: requirements/nginx
       dockerfile: Dockerfile
-    image: nginx
+    image: nginx:cg.1
     container_name: nginx
     ports:
       - "443:443" 
     volumes:
-      - wp_data:/var/www/html:ro       # serve static WP assets directly
+      - wp_data:/var/www/html:ro  # serve static WP assets directly
     networks:
       - inception
     restart: unless-stopped
