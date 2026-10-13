@@ -10,16 +10,16 @@ BONUS_SERVICES = static adminer portainer redis
 all: $(STAMP) up
 
 $(STAMP): srcs/docker-compose.yml $(shell find srcs/requirements -type f)
-	mkdir -p ${DATA}/mariadb ${DATA}/wordpress
-	docker compose -f ${COMPOSE_FILE} build mariadb wordpress nginx
+	mkdir -p ${DATA}/mariadb ${DATA}/portainer ${DATA}/redis ${DATA}/wordpress
+	docker compose -f ${COMPOSE_FILE} build
 	@touch $(STAMP)
 
 build:
-	mkdir -p ${DATA}/mariadb ${DATA}/wordpress
-	docker compose -f ${COMPOSE_FILE} build mariadb wordpress nginx
+	mkdir -p ${DATA}/mariadb ${DATA}/portainer ${DATA}/redis ${DATA}/wordpress
+	docker compose -f ${COMPOSE_FILE} build
 
 up:
-	docker compose -f ${COMPOSE_FILE} up -d mariadb wordpress nginx
+	docker compose -f ${COMPOSE_FILE} up -d
 
 down:
 	docker compose -f ${COMPOSE_FILE} down
@@ -42,7 +42,7 @@ re: fclean all
 bonus: $(BONUS_STAMP) up-bonus
 
 $(BONUS_STAMP): srcs/docker-compose.yml $(shell find srcs/requirements/bonus -type f)
-	mkdir -p ${DATA}/mariadb ${DATA}/wordpress ${DATA}/portainer ${DATA}/redis
+	mkdir -p ${DATA}/mariadb ${DATA}/portainer ${DATA}/redis ${DATA}/wordpress ${DATA}/portainer ${DATA}/redis
 	docker compose -f $(COMPOSE_FILE) build $(BONUS_SERVICES)
 	@touch $(BONUS_STAMP)
 

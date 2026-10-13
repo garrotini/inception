@@ -13,8 +13,16 @@ services:
       - db_password
     volumes:
       - db_data:/var/lib/mysql
+    expose:
+      - "3306"
     networks:
       - inception
+    healthcheck:
+      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost", "--silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     restart: unless-stopped
 
   wordpress:
@@ -26,8 +34,9 @@ services:
     env_file: .env
     environment:
       WP_REDIS: ${WP_REDIS:-false}
-    depends_on: 
-      - mariadb
+    depends_on:
+      mariadb:
+        condition: service_healthy
     secrets:
       - wp_credentials 
       - db_password
@@ -43,6 +52,8 @@ services:
       dockerfile: Dockerfile
     image: nginx:cg.1
     container_name: nginx
+    depends_on:
+      - wordpress
     ports:
       - "443:443" 
     volumes:

@@ -21,23 +21,26 @@ done
 
 echo "___ MariaDB is ready! ___ "
 
-# setup WP
-# first boot: seed the (empty) volume from the baked copy outside the mount point
+# setup WP (seed -> config -> install -> users; every step idempotent)
+cd /var/www/html
+
 if [ ! -f /var/www/html/wp-load.php ]; then
 	echo "_ Seeding WordPress files into the volume..."
 	cp -a /var/www-src/wordpress/. /var/www/html/
 fi
 
-if [ ! -f /var/www/html/wp-config.php ]; then
-	echo "_ Config WordPress..."
-	cd /var/www/html
+if [ ! -f wp-config.php ]; then
+	echo "_ Creating wp-config.php..."
 	cp wp-config-sample.php wp-config.php
 	sed -i "s/database_name_here/$MARIADB_DATABASE/" wp-config.php
-    sed -i "s/username_here/$MARIADB_USER/" wp-config.php
-    sed -i "s/password_here/$MARIADB_PASSWORD/" wp-config.php
-    sed -i "s/localhost/$MARIADB_HOST/" wp-config.php
+	sed -i "s/username_here/$MARIADB_USER/" wp-config.php
+	sed -i "s/password_here/$MARIADB_PASSWORD/" wp-config.php
+	sed -i "s/localhost/$MARIADB_HOST/" wp-config.php
 	wp config shuffle-salts --allow-root >/dev/null
+fi
 
+if ! wp core is-installed --allow-root >/dev/null 2>&1; then
+	echo "_ Installing WordPress..."
 	wp core install --url="https://$DOMAIN_NAME" \
 		--admin_user="$WP_ADMIN" \
 		--admin_email="$WP_ADMIN_EMAIL" \
@@ -45,16 +48,14 @@ if [ ! -f /var/www/html/wp-config.php ]; then
 		--title="$WP_TITLE" \
 		--skip-email \
 		--allow-root
-
-    wp user create "$WP_USER" "$WP_USER_EMAIL" \
-        --user_pass="$WP_USER_PASSWORD" \
-        --role=author \
-        --allow-root
-
-	echo "___ WordPress has been configured ready! ___ "
-else
-	echo "___ WordPress should be running fine ___";
 fi
+
+if ! wp user get "$WP_USER" --allow-root >/dev/null 2>&1; then
+	echo "_ Creating second user: $WP_USER"
+	wp user create "$WP_USER" "$WP_USER_EMAIL" --role=author --user_pass="$WP_USER_PASSWORD" --allow-root
+fi
+
+echo "___ WordPress configured — handing to php-fpm ___"
 
 # --- Redis object cache (bonus): only when WP_REDIS=true ---
 cd /var/www/html
