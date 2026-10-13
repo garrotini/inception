@@ -1,7 +1,18 @@
 COMPOSE_FILE = ./srcs/docker-compose.yml
 DATA = /home/cmanuel-/data
+STAMP = .build.stamp
+BONUS_STAMP  = .bonus.stamp
 
-all: build up
+BONUS_SERVICES = static
+
+# --- mandatory --- 
+
+all: $(STAMP) up
+
+$(STAMP): srcs/docker-compose.yml $(shell find srcs/requirements -type f)
+	mkdir -p ${DATA}/mariadb ${DATA}/wordpress
+	docker compose -f ${COMPOSE_FILE} build mariadb wordpress nginx
+	@touch $(STAMP)
 
 build:
 	mkdir -p ${DATA}/mariadb ${DATA}/wordpress
@@ -21,17 +32,26 @@ fclean: clean
 	sudo rm -rf ${DATA}/mariadb
 	sudo rm -rf ${DATA}/wordpress
 	sudo rm -rf {DATA}
+	rm -f $(STAMP) $(BONUS_STAMP)
 	docker volume prune -af
 
 re: fclean all
 
-bonus:
+# --- bonus --- 
+
+bonus: $(BONUS_STAMP) up-bonus
+
+$(BONUS_STAMP): srcs/docker-compose.yml $(shell find srcs/requirements/bonus -type f)
 	mkdir -p ${DATA}/mariadb ${DATA}/wordpress
-	docker compose -f ${COMPOSE_FILE}
-	docker compose -f ${COMPOSE_FILE} up -d
+	docker compose -f $(COMPOSE_FILE) build $(BONUS_SERVICES)
+	@touch $(BONUS_STAMP)
+
+up-bonus:
+	docker compose -f $(COMPOSE_FILE) up -d
 
 ffclean: fclean
 
+# --- tests --- 
 
 tmaria:
 	echo "___SHOW DATABASES___"
@@ -70,4 +90,5 @@ shwp:
 stop:
 	docker ps -qa | xargs -r docker stop
 
-.PHONY: all build up down clean fclean re tmaria shmaria twp shwp stop bonus ffclean
+.PHONY: all build up bonus up-bonus down clean fclean re ffclean tmaria shmaria twp shwp stop
+
