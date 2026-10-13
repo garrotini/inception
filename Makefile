@@ -25,6 +25,14 @@ fclean: clean
 
 re: fclean all
 
+bonus:
+	mkdir -p ${DATA}/mariadb ${DATA}/wordpress
+	docker compose -f ${COMPOSE_FILE}
+	docker compose -f ${COMPOSE_FILE} up -d
+
+ffclean: fclean
+
+
 tmaria:
 	echo "___SHOW DATABASES___"
 	docker exec mariadb mariadb -e "SHOW DATABASES;"
@@ -62,4 +70,4 @@ shwp:
 stop:
 	docker ps -qa | xargs -r docker stop
 
-.PHONY: all build up down clean fclean re tmaria shmaria twp shwp stop
+.PHONY: all build up down clean fclean re tmaria shmaria twp shwp stop bonus ffclean

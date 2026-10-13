@@ -54,6 +54,19 @@ services:
       - inception
     restart: unless-stopped
 
+  static:
+    image: static:cg.1
+    pull_policy: never
+    build:
+      context: ./requirements/bonus/static
+      dockerfile: Dockerfile
+    container_name: static
+    ports:
+      - "8081:80"
+    networks:
+      - inception
+    restart: always
+
 networks:
   inception:
     driver: bridge
