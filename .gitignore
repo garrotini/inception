@@ -2,3 +2,5 @@ secrets/
 srcs/.env
 *.swp
 .build.stamp
+.bonus.stamp
+
