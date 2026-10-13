@@ -3,7 +3,7 @@ DATA = /home/cmanuel-/data
 STAMP = .build.stamp
 BONUS_STAMP  = .bonus.stamp
 
-BONUS_SERVICES = static
+BONUS_SERVICES = static adminer
 
 # --- mandatory --- 
 
@@ -86,6 +86,9 @@ twp:
 
 shwp:
 	docker exec -it wordpress sh
+
+alpine:
+	docker run --rm -it alpine:3.23 sh
 
 stop:
 	docker ps -qa | xargs -r docker stop

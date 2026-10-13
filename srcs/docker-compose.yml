@@ -52,20 +52,35 @@ services:
       - wp_data:/var/www/html:ro  # serve static WP assets directly
     networks:
       - inception
-    restart: unless-stopped
 
   static:
-    image: static:cg.1
     pull_policy: never
     build:
       context: ./requirements/bonus/static
       dockerfile: Dockerfile
+    image: static:cg.1
     container_name: static
     ports:
       - "8081:80"
     networks:
       - inception
-    restart: always
+    restart: unless-stopped
+
+  adminer:
+    pull_policy: never
+    build:
+      context: ./requirements/bonus/adminer
+      dockerfile: Dockerfile
+    image: adminer:cg.1
+    container_name: adminer
+    depends_on: 
+      mariadb:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    networks:
+      - inception
+    restart: unless-stopped
 
 networks:
   inception:
