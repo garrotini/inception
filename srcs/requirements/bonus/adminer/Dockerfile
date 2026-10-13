@@ -6,8 +6,10 @@ RUN apk add --no-cache \
     php84-mysqli \
 	ca-certificates
 
+# RUN mkdir -p /var/www \
+# 	&& wget -qO /var/www/index.php https://www.adminer.org/latest.php
 RUN mkdir -p /var/www \
-	&& wget -qO /var/www/index.php https://www.adminer.org/latest.php
+	&& wget -qO /var/www/index.php https://github.com/vrana/adminer/releases/download/v6.1.2/adminer-6.1.2.php
 
 EXPOSE 8080
 
