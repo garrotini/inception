@@ -9,16 +9,25 @@ WP_USER_PASSWORD="$(sed -n 2p /run/secrets/wp_credentials)"
 # setup mariadb client
 echo "_ Config MariaDB... "
 
-until mariadb-admin ping --host=${MARIADB_HOST} \
-   	--user=${MARIADB_USER} \
-	--password=${MARIADB_PASSWORD} \
-	--silent;
-do sleep 1
+i=0
+until mariadb-admin ping --host="$MARIADB_HOST" \
+    --user="$MARIADB_USER" \
+    --password="$MARIADB_PASSWORD" \
+    --silent >/dev/null 2>&1; do
+    i=$((i + 1))
+    [ "$i" -ge 60 ] && { echo "ERROR: mariadb unreachable after 60s" >&2; exit 1; }
+    sleep 1
 done
 
 echo "___ MariaDB is ready! ___ "
 
 # setup WP
+# first boot: seed the (empty) volume from the baked copy outside the mount point
+if [ ! -f /var/www/html/wp-load.php ]; then
+	echo "_ Seeding WordPress files into the volume..."
+	cp -a /var/www-src/wordpress/. /var/www/html/
+fi
+
 if [ ! -f /var/www/html/wp-config.php ]; then
 	echo "_ Config WordPress..."
 	cd /var/www/html
@@ -27,12 +36,14 @@ if [ ! -f /var/www/html/wp-config.php ]; then
     sed -i "s/username_here/$MARIADB_USER/" wp-config.php
     sed -i "s/password_here/$MARIADB_PASSWORD/" wp-config.php
     sed -i "s/localhost/$MARIADB_HOST/" wp-config.php
+	wp config shuffle-salts --allow-root >/dev/null
 
 	wp core install --url="https://$DOMAIN_NAME" \
 		--admin_user="$WP_ADMIN" \
 		--admin_email="$WP_ADMIN_EMAIL" \
 		--admin_password="$WP_ADMIN_PASSWORD" \
 		--title="$WP_TITLE" \
+		--skip-email \
 		--allow-root
 
     wp user create "$WP_USER" "$WP_USER_EMAIL" \

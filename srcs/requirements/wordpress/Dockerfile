@@ -34,10 +34,12 @@ RUN set -x \
 RUN chown -R www-data:www-data /var/www/html
 
 # download wordpress binaries
-RUN wget https://wordpress.org/latest.zip && \
-    unzip latest.zip && \
-    cp -rf wordpress/* /var/www/html && \
-    rm -rf wordpress latest.zip
+ARG WP_VERSION=7.1.3
+RUN wget -q https://wordpress.org/wordpress-${WP_VERSION}.tar.gz && \
+    tar -xzf wordpress-${WP_VERSION}.tar.gz && \
+    mkdir -p /var/www-src && \
+    cp -a wordpress /var/www-src/ && \
+    rm -rf wordpress wordpress-${WP_VERSION}.tar.gz
 
 
 # copy config 

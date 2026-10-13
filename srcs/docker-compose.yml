@@ -15,12 +15,6 @@ services:
       - db_data:/var/lib/mysql
     networks:
       - inception
-    healthcheck:
-      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost", "--silent"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
     restart: unless-stopped
 
   wordpress:
@@ -32,6 +26,8 @@ services:
     env_file: .env
     environment:
       WP_REDIS: ${WP_REDIS:-false}
+    depends_on: 
+      - mariadb
     secrets:
       - wp_credentials 
       - db_password
@@ -76,8 +72,7 @@ services:
     pull_policy: never
     container_name: adminer
     depends_on: 
-      mariadb:
-        condition: service_healthy
+      - mariadb
     ports:
       - "8080:8080"
     networks:
@@ -155,3 +150,4 @@ secrets:
     file: ../secrets/db_password.txt
   wp_credentials:
     file: ../secrets/credentials.txt
+
