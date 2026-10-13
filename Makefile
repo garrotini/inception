@@ -3,7 +3,7 @@ DATA = /home/cmanuel-/data
 STAMP = .build.stamp
 BONUS_STAMP  = .bonus.stamp
 
-BONUS_SERVICES = static adminer
+BONUS_SERVICES = static adminer portainer redis
 
 # --- mandatory --- 
 
@@ -31,7 +31,7 @@ clean:
 fclean: clean
 	sudo rm -rf ${DATA}/mariadb
 	sudo rm -rf ${DATA}/wordpress
-	sudo rm -rf {DATA}
+	sudo rm -rf ${DATA}
 	rm -f $(STAMP) $(BONUS_STAMP)
 	docker volume prune -af
 
@@ -42,14 +42,14 @@ re: fclean all
 bonus: $(BONUS_STAMP) up-bonus
 
 $(BONUS_STAMP): srcs/docker-compose.yml $(shell find srcs/requirements/bonus -type f)
-	mkdir -p ${DATA}/mariadb ${DATA}/wordpress
+	mkdir -p ${DATA}/mariadb ${DATA}/wordpress ${DATA}/portainer ${DATA}/redis
 	docker compose -f $(COMPOSE_FILE) build $(BONUS_SERVICES)
 	@touch $(BONUS_STAMP)
 
-up-bonus:
-	docker compose -f $(COMPOSE_FILE) up -d
+rebonus: fclean bonus
 
-ffclean: fclean
+up-bonus:
+	WP_REDIS=true docker compose -f $(COMPOSE_FILE) up -d
 
 # --- tests --- 
 
@@ -86,6 +86,9 @@ twp:
 
 shwp:
 	docker exec -it wordpress sh
+
+shredis:
+	docker exec -it redis redis-cli
 
 alpine:
 	docker run --rm -it alpine:3.23 sh

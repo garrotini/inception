@@ -12,6 +12,10 @@ RUN apk update && apk add --no-cache \
 	php84-xml \
 	php84-phar \
 	php84-session \
+	php84-pecl-redis \
+	php84-ctype \
+	php84-tokenizer \
+	php84-zip \
 	mariadb-client
 
 # wp-cli will expect php, not php84

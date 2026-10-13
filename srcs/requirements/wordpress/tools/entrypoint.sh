@@ -8,17 +8,6 @@ WP_USER_PASSWORD="$(sed -n 2p /run/secrets/wp_credentials)"
 
 # setup mariadb client
 echo "_ Config MariaDB... "
-# until mariadb \
-# 	--skip-ssl-verify-server-cert \
-# 	--host=${MARIADB_HOST} \
-# 	--port=3306 \
-# 	--user=${MARIADB_USER} \
-# 	--password=${MARIADB_PASSWORD} \
-# 	--execute "SELECT 1 FROM information_schema.SCHEMATA WHERE SCHEMA_NAME='$MARIADB_DATABASE'" >/dev/null 2>&1
-# do
-# 	echo "_ waiting for MariaDB... "
-# 	sleep 1;
-# done
 
 until mariadb-admin ping --host=${MARIADB_HOST} \
    	--user=${MARIADB_USER} \
@@ -54,6 +43,39 @@ if [ ! -f /var/www/html/wp-config.php ]; then
 	echo "___ WordPress has been configured ready! ___ "
 else
 	echo "___ WordPress should be running fine ___";
+fi
+
+# --- Redis object cache (bonus): only when WP_REDIS=true ---
+cd /var/www/html
+
+if [ "$WP_REDIS" = "true" ]; then
+	echo "_ Configuring Redis object cache..."
+	REDIS_HOST="${WP_REDIS_HOST:-redis}"
+	REDIS_PORT="${WP_REDIS_PORT:-6379}"
+
+	# wait for Redis (4 tries) — no depends_on, so it may still be starting
+	i=0
+	until nc -z "$REDIS_HOST" "$REDIS_PORT" 2>/dev/null; do
+		i=$((i + 1))
+		[ "$i" -ge 4 ] && break
+		sleep 1
+	done
+
+	if nc -z "$REDIS_HOST" "$REDIS_PORT" 2>/dev/null; then
+		wp config set WP_REDIS_HOST "$REDIS_HOST" --allow-root
+		wp config set WP_REDIS_PORT "$REDIS_PORT" --raw --allow-root
+
+		if ! wp plugin is-installed redis-cache --allow-root 2>/dev/null; then
+			wp plugin install redis-cache --activate --allow-root
+		fi
+		wp redis enable --allow-root || true
+		echo "_ Redis cache enabled"
+	else
+		echo "_ Redis not reachable - continuing without cache"
+	fi
+else
+	echo "_ WP_REDIS not true - running without Redis cache"
+	wp redis disable --allow-root 2>/dev/null || true
 fi
 
 chown -R www-data:www-data /var/www/html

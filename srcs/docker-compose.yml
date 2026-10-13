@@ -30,9 +30,10 @@ services:
     image: wordpress:cg.1
     container_name: wordpress
     env_file: .env
+    environment:
+      WP_REDIS: ${WP_REDIS:-false}
     secrets:
       - wp_credentials 
-      - db_root_password
       - db_password
     volumes:
       - wp_data:/var/www/html
@@ -52,13 +53,14 @@ services:
       - wp_data:/var/www/html:ro  # serve static WP assets directly
     networks:
       - inception
+    restart: unless-stopped
 
   static:
-    pull_policy: never
     build:
       context: ./requirements/bonus/static
       dockerfile: Dockerfile
     image: static:cg.1
+    pull_policy: never
     container_name: static
     ports:
       - "8081:80"
@@ -67,17 +69,50 @@ services:
     restart: unless-stopped
 
   adminer:
-    pull_policy: never
     build:
       context: ./requirements/bonus/adminer
       dockerfile: Dockerfile
     image: adminer:cg.1
+    pull_policy: never
     container_name: adminer
     depends_on: 
       mariadb:
         condition: service_healthy
     ports:
       - "8080:8080"
+    networks:
+      - inception
+    restart: unless-stopped
+  
+  portainer:
+    build:
+      context: ./requirements/bonus/portainer
+      dockerfile: Dockerfile
+    image: portainer:cg.1
+    pull_policy: never
+    container_name: portainer
+    ports:
+      - "9443:9443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock # bind socket
+      - portainer_data:/data
+    networks:
+      - inception
+    restart: unless-stopped
+
+  redis:
+    build:
+      context: ./requirements/bonus/redis
+      dockerfile: Dockerfile
+    image: redis:cg.1
+    pull_policy: never
+    container_name: redis
+    depends_on:
+      - mariadb
+    env_file:
+      - ./.env
+    volumes:
+      - redis_data:/var/lib/redis   # <-- persist AOF/RDB
     networks:
       - inception
     restart: unless-stopped
@@ -100,6 +135,18 @@ volumes:
       type: none
       o: bind
       device: ${DATA}/wordpress
+  portainer_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA}/portainer
+  redis_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA}/redis
 
 secrets:
   db_root_password:
