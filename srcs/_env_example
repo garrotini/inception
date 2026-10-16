@@ -1,5 +1,7 @@
 DOMAIN_NAME=cmanuel-.42.fr
 
+DATA=/home/cmanuel-/data
+
 MARIADB_DATABASE=wordpress
 MARIADB_USER=user
 MARIADB_HOST=mariadb
