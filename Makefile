@@ -8,6 +8,7 @@ BONUS_SERVICES = static adminer portainer redis ftp
 
 # --- mandatory --- 
 
+
 all: $(STAMP) up
 
 $(STAMP): srcs/docker-compose.yml $(shell find srcs/requirements -type f)
@@ -36,6 +37,15 @@ fclean: clean
 	docker volume prune -af
 
 re: fclean all
+
+first:
+	mkdir -p secrets
+	@umask 077 && openssl rand -hex 16 > ./secrets/db_password.txt
+	@umask 077 && openssl rand -hex 16 > ./secrets/db_root_password.txt
+	@umask 077 && openssl rand -hex 16 > ./secrets/credentials.txt
+	@umask 077 && openssl rand -hex 16 >> ./secrets/credentials.txt
+	cp .srcs/_env_example .srcs/.env
+	sudo echo "127.0.0.1	cmanuel-.42.fr" >> /etc/hosts/
 
 # --- bonus --- 
 
@@ -100,5 +110,5 @@ alpine:
 stop:
 	docker ps -qa | xargs -r docker stop
 
-.PHONY: all build up bonus up-bonus down clean fclean re ffclean tmaria shmaria twp shwp stop
+.PHONY: all build up bonus up-bonus down clean fclean re ffclean tmaria shmaria twp shwp stop secrets
 
