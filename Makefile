@@ -44,8 +44,8 @@ first:
 	@umask 077 && openssl rand -hex 16 > ./secrets/db_root_password.txt
 	@umask 077 && openssl rand -hex 16 > ./secrets/credentials.txt
 	@umask 077 && openssl rand -hex 16 >> ./secrets/credentials.txt
-	cp .srcs/_env_example .srcs/.env
-	sudo echo "127.0.0.1	cmanuel-.42.fr" >> /etc/hosts/
+	cp srcs/_example srcs/.env
+	echo "127.0.0.1	cmanuel-.42.fr" | sudo tee -a /etc/hosts
 
 # --- bonus --- 
 
