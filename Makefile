@@ -1,14 +1,11 @@
 COMPOSE_FILE = ./srcs/docker-compose.yml
 DATA = /home/cmanuel-/data
-STAMP = .build.stamp
-BONUS_STAMP  = .bonus.stamp
-FTP_SECRET = secrets/ftp_password.txt
-
-BONUS_SERVICES = static adminer portainer redis ftp
 
 # --- mandatory --- 
 
-all:
+all: env run
+
+help:
 	@echo "\nUsage: make [OPTION]\n";
 	@echo "make env	- create the credentials and environment"
 	@echo "make build	- create the mandatory images: mariadb, wordpress, nginx"
@@ -27,21 +24,19 @@ all:
 	@echo "make fclean	- stop and remove services + networks, purge images and remove persistent volumes"
 
 env:
-	mkdir -p secrets
-	@umask 077 && openssl rand -hex 16 > ./secrets/db_password.txt
-	@umask 077 && openssl rand -hex 16 > ./secrets/db_root_password.txt
-	@umask 077 && openssl rand -hex 16 > ./secrets/credentials.txt
-	@umask 077 && openssl rand -hex 16 >> ./secrets/credentials.txt
-	cp srcs/_example srcs/.env
-	echo "127.0.0.1	cmanuel-.42.fr" | sudo tee -a /etc/hosts
+	@mkdir -p secrets
+	@[ -f secrets/db_password.txt ] || { umask 077 && openssl rand -hex 16 > secrets/db_password.txt; }
+	@[ -f secrets/db_root_password.txt ] || { umask 077 && openssl rand -hex 16 > secrets/db_root_password.txt; }
+	@[ -f secrets/credentials.txt ] || { umask 077 && openssl rand -hex 16 > secrets/credentials.txt && openssl rand -hex 16 >> secrets/credentials.txt; }
+	@[ -f srcs/.env ] || cp srcs/_example srcs/.env
+	@grep -qs "cmanuel-.42.fr" /etc/hosts || echo "127.0.0.1	cmanuel-.42.fr" | sudo tee -a /etc/hosts
 
 build: 
 	mkdir -p ${DATA}/mariadb ${DATA}/wordpress
 	docker compose -f ${COMPOSE_FILE} build mariadb wordpress nginx
 
-run: 
-	mkdir -p ${DATA}/mariadb ${DATA}/wordpress
-	docker compose -f ${COMPOSE_FILE} run mariadb wordpress nginx
+run:  build
+	docker compose -f ${COMPOSE_FILE} up -d mariadb wordpress nginx
 
 up:
 	mkdir -p ${DATA}/mariadb ${DATA}/wordpress
@@ -50,37 +45,41 @@ up:
 down:
 	docker compose -f ${COMPOSE_FILE} down
 
+start:
+	docker compose -f ${COMPOSE_FILE} start
+
+stop:
+	docker compose -f ${COMPOSE_FILE} stop
+
 clean:
 	docker compose -f ${COMPOSE_FILE} down -v --remove-orphans
 	docker system prune -af
 
 fclean: clean
 	sudo rm -rf ${DATA}
-	rm -f $(FTP_SECRET)
+	rm -f secrets/ftp_password.txt
 	docker volume prune -af
 
 re: fclean run
 
 # --- bonus --- 
 
-bonus: env $(FTP_SECRET)
+bonus: env
 	mkdir -p ${DATA}/mariadb ${DATA}/wordpress ${DATA}/portainer ${DATA}/redis
+	@[ -f secrets/ftp_password.txt ] || { umask 077 && openssl rand -hex 16 > secrets/ftp_password.txt; }
 	docker compose -f $(COMPOSE_FILE) build
-
-$(FTP_SECRET):
-	mkdir -p secrets
-	@umask 077 && openssl rand -hex 16 > $@
 
 bonusrun: bonus
 	WP_REDIS=true docker compose -f ${COMPOSE_FILE} up -d
 
 bonusup:
+	@[ -f secrets/ftp_password.txt ] || { umask 077 && openssl rand -hex 16 > secrets/ftp_password.txt; }
 	WP_REDIS=true docker compose -f ${COMPOSE_FILE} up -d
 
-rebonus: fclean bonusrun
+bonusstart:
+	WP_REDIS=true docker compose -f ${COMPOSE_FILE} start
 
-up-bonus:
-	WP_REDIS=true docker compose -f $(COMPOSE_FILE) up -d
+rebonus: fclean bonusrun
 
 # --- tests/sh access --- 
 
@@ -102,8 +101,5 @@ shredis:
 alpine:
 	docker run --rm -it alpine:3.23 sh
 
-stop:
-	docker ps -qa | xargs -r docker stop
-
-.PHONY: all build up bonus up-bonus down clean fclean re ffclean tmaria shmaria twp shwp stop secrets
+.PHONY: all env build run up down start stop clean fclean re bonus bonusrun bonusup bonusstart rebonus tmaria shmaria shwp shredis alpine help
 
