@@ -7,7 +7,7 @@ DATADIR=/var/lib/mysql
 MARIADB_PASSWORD=$(cat /run/secrets/db_password)
 MARIADB_ROOT_PASSWORD=$(cat /run/secrets/db_root_password)
 
-# runtime dirs — ran EVERY boot
+# runtime dirs — run EVERY boot
 mkdir -p /run/mysqld
 chown -R mysql:mysql /run/mysqld
 chmod 755 /run/mysqld
