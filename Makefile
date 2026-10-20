@@ -7,6 +7,7 @@ all: env run
 
 help:
 	@echo "\nUsage: make [OPTION]\n";
+	@echo "make all	- create the credentials, environment and run the mandatory services"
 	@echo "make env	- create the credentials and environment"
 	@echo "make build	- create the mandatory images: mariadb, wordpress, nginx"
 	@echo "make run	- create and run the mandatory containers: mariadb, wordpress, nginx"
@@ -14,7 +15,8 @@ help:
 	@echo "make stop	- stop services"
 	@echo "make up		- create and start containers"
 	@echo "make down	- stop and remove containers and networks"
-	@echo "make bonus	- create ALL images (mandatory + bonus)"
+	@echo "make bonus	- create and run ALL images for BONUS"
+	@echo "make bonusbuild	- create ALL images (mandatory + bonus)"
 	@echo "make bonusrun	- create and run the ALL containers"
 	@echo "make bonusup	- create and start ALL containers"
 	@echo "make bonusstart	- start ALL services"
@@ -64,22 +66,25 @@ re: fclean run
 
 # --- bonus --- 
 
-bonus: env
+bonus: bonusrun
+
+bonusbuild: env
 	mkdir -p ${DATA}/mariadb ${DATA}/wordpress ${DATA}/portainer ${DATA}/redis
 	@[ -f secrets/ftp_password.txt ] || { umask 077 && openssl rand -hex 16 > secrets/ftp_password.txt; }
 	docker compose -f $(COMPOSE_FILE) build
 
-bonusrun: bonus
+bonusrun: bonusbuild 
 	WP_REDIS=true docker compose -f ${COMPOSE_FILE} up -d
 
-bonusup:
+bonusup: env
+	mkdir -p ${DATA}/mariadb ${DATA}/wordpress ${DATA}/portainer ${DATA}/redis
 	@[ -f secrets/ftp_password.txt ] || { umask 077 && openssl rand -hex 16 > secrets/ftp_password.txt; }
 	WP_REDIS=true docker compose -f ${COMPOSE_FILE} up -d
 
 bonusstart:
 	WP_REDIS=true docker compose -f ${COMPOSE_FILE} start
 
-rebonus: fclean bonusrun
+rebonus: fclean bonus
 
 # --- tests/sh access --- 
 
@@ -101,5 +106,5 @@ shredis:
 alpine:
 	docker run --rm -it alpine:3.23 sh
 
-.PHONY: all env build run up down start stop clean fclean re bonus bonusrun bonusup bonusstart rebonus tmaria shmaria shwp shredis alpine help
+.PHONY: all env build run up down start stop clean fclean re bonus bonusrun bonusup bonusstart rebonus tmaria shmaria shwp shredis alpine help bonusbuild
 
