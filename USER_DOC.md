@@ -9,7 +9,7 @@ required.
 |---|---|
 | `https://cmanuel-.42.fr` | WordPress site (the only public entry point) |
 | `https://cmanuel-.42.fr/wp-admin` | WordPress administration dashboard |
-| `https://cmanuel-.42.fr:8080` (bonus) | Adminer — web UI for the MariaDB database |
+| `http://cmanuel-.42.fr:8080` (bonus) | Adminer — web UI for the MariaDB database |
 | `https://cmanuel-.42.fr:9443` (bonus) | Portainer — container management UI |
 | `http://cmanuel-.42.fr:8081` (bonus) | Static showcase site |
 | `ftp://cmanuel-.42.fr:21` (bonus) | FTP server editing the WordPress files |
