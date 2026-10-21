@@ -34,7 +34,7 @@ make help       # list all commands
 Bonus (adds redis, adminer, portainer, ftp, static site):
 
 ```sh
-make bonusrun   # build everything + start all services
+make bonus      # build everything + start all services
 make bonusstart # start existing bonus containers only
 ```
 
