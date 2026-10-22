@@ -2,8 +2,8 @@
 
 # Inception
 
-A small virtualized infrastructure: WordPress, MariaDB and NGINX, each running in its
-own container, built from custom Dockerfiles and orchestrated with Docker Compose.
+A small virtualized infrastructure: WordPress, MariaDB and NGINX, each running in its own container, built from custom Dockerfiles and orchestrated with Docker Compose.
+As for the Project Bonus, you are asked to implement Adminer, FTP server, Redis, a static web page and an optional service at your choice (Portainer, in my case).
 
 ## Description
 
@@ -95,7 +95,7 @@ volume semantics, bind storage location.
 ```sh
 git clone <your repo> && cd <repo>
 make            # build + start the mandatory stack (mariadb, wordpress, nginx)
-make bonusrun   # instead: everything, including bonus services
+make bonus      # instead: everything, including bonus services
 ```
 
 Point your browser to **https://cmanuel-.42.fr** (`make` appends the hosts entry
@@ -105,17 +105,15 @@ if missing; needs `sudo`). Full stop/start/reset lifecycle and troubleshooting i
 ## Resources
 
 - Docker & Docker Compose — docs.docker.com/engine, docs.docker.com/compose
-- NGINX — nginx.org/en/docs; ` ngx_http_fastcgi_module` reference
+- Alpine Linux Wiki (currently on maintenance due to security issues: CVE-2026-109618, CVE-2026-109619);
 - WordPress — wordpress.org/documentation; wp-cli — wp-cli.org
 - MariaDB — mariadb.com/kb; Alpine package index — pkgs.alpinelinux.org
-- 42 subject PDF (`inception_en.subject.pdf`) and the PID-1 / "running daemons in
-  Docker" best-practices articles linked from it
 - Peer discussions during implementation and self-testing
+- YT videos from Nana (TechWorld with Nana) and Marek (Automation Avenue)
 
-**Use of AI**: AI assistants were used to (1) review and debug the Makefile and
-compose file (e.g. finding a duplicated `stop:` target and non-idempotent secret
-generation), (2) draft and proofread these documentation files, and (3) look up
-flags/options of `docker compose`, `wp-cli` and `vsftpd`. Every AI suggestion was
-reviewed line by line, tested by running the stack, and understood by the author
-before being kept; all core logic (entrypoints, init scripts, configuration) is
-hand-written.
+**Use of AI**: 
+- review and debug the Makefile, compose file and Dockerfiles
+- help with idempotency throughout the whole project 
+- draft and proofread these documentation files
+- nourishable discussion for learning 
+
