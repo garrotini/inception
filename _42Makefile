@@ -1,0 +1,110 @@
+COMPOSE_FILE = ./srcs/docker-compose.yml
+DATA = /home/cmanuel-/data
+
+# --- mandatory --- 
+
+all: env run
+
+help:
+	@echo "\nUsage: make [OPTION]\n";
+	@echo "make all	- create the credentials, environment and run the mandatory services"
+	@echo "make env	- create the credentials and environment"
+	@echo "make build	- create the mandatory images: mariadb, wordpress, nginx"
+	@echo "make run	- create and run the mandatory containers: mariadb, wordpress, nginx"
+	@echo "make start	- start services"
+	@echo "make stop	- stop services"
+	@echo "make up		- create and start containers"
+	@echo "make down	- stop and remove containers and networks"
+	@echo "make bonus	- create and run ALL images for BONUS"
+	@echo "make bonusbuild	- create ALL images (mandatory + bonus)"
+	@echo "make bonusrun	- create and run the ALL containers"
+	@echo "make bonusup	- create and start ALL containers"
+	@echo "make bonusstart	- start ALL services"
+	@echo "make re		- full clean, rebuild and run mandatory services"
+	@echo "make rebonus	- full clean, rebuild and run ALL services"
+	@echo "make clean	- stop and remove services + networks, purge images"
+	@echo "make fclean	- stop and remove services + networks, purge images and remove persistent volumes"
+
+env:
+	@mkdir -p secrets
+	@[ -f secrets/db_password.txt ] || { umask 077 && openssl rand -hex 16 > secrets/db_password.txt; }
+	@[ -f secrets/db_root_password.txt ] || { umask 077 && openssl rand -hex 16 > secrets/db_root_password.txt; }
+	@[ -f secrets/credentials.txt ] || { umask 077 && openssl rand -hex 16 > secrets/credentials.txt && openssl rand -hex 16 >> secrets/credentials.txt; }
+	@[ -f srcs/.env ] || cp /home/cmanuel-/_example srcs/.env
+	@grep -qs "cmanuel-.42.fr" /etc/hosts || echo "127.0.0.1	cmanuel-.42.fr" | sudo tee -a /etc/hosts
+
+build: 
+	mkdir -p ${DATA}/mariadb ${DATA}/wordpress
+	docker compose -f ${COMPOSE_FILE} build mariadb wordpress nginx
+
+run:  build
+	docker compose -f ${COMPOSE_FILE} up -d mariadb wordpress nginx
+
+up:
+	mkdir -p ${DATA}/mariadb ${DATA}/wordpress
+	docker compose -f ${COMPOSE_FILE} up -d mariadb wordpress nginx
+
+down:
+	docker compose -f ${COMPOSE_FILE} down
+
+start:
+	docker compose -f ${COMPOSE_FILE} start
+
+stop:
+	docker compose -f ${COMPOSE_FILE} stop
+
+clean:
+	docker compose -f ${COMPOSE_FILE} down -v --remove-orphans
+	docker system prune -af
+
+fclean: clean
+	sudo rm -rf ${DATA}
+	rm -f secrets/ftp_password.txt
+	docker volume prune -af
+
+re: fclean run
+
+# --- bonus --- 
+
+bonus: bonusrun
+
+bonusbuild: env
+	mkdir -p ${DATA}/mariadb ${DATA}/wordpress ${DATA}/portainer ${DATA}/redis
+	@[ -f secrets/ftp_password.txt ] || { umask 077 && openssl rand -hex 16 > secrets/ftp_password.txt; }
+	docker compose -f $(COMPOSE_FILE) build
+
+bonusrun: bonusbuild 
+	WP_REDIS=true docker compose -f ${COMPOSE_FILE} up -d
+
+bonusup: env
+	mkdir -p ${DATA}/mariadb ${DATA}/wordpress ${DATA}/portainer ${DATA}/redis
+	@[ -f secrets/ftp_password.txt ] || { umask 077 && openssl rand -hex 16 > secrets/ftp_password.txt; }
+	WP_REDIS=true docker compose -f ${COMPOSE_FILE} up -d
+
+bonusstart:
+	WP_REDIS=true docker compose -f ${COMPOSE_FILE} start
+
+rebonus: fclean bonus
+
+# --- tests/sh access --- 
+
+tmaria:
+	echo "___SHOW DATABASES___"
+	docker exec mariadb mariadb -e "SHOW DATABASES;"
+	echo "___SHOW GRANTS___"
+	docker exec mariadb mariadb -e "SHOW GRANTS FOR 'dbuser';"
+
+shmaria:
+	docker exec -it mariadb sh
+
+shwp:
+	docker exec -it wordpress sh
+
+shredis:
+	docker exec -it redis redis-cli
+
+alpine:
+	docker run --rm -it alpine:3.23 sh
+
+.PHONY: all env build run up down start stop clean fclean re bonus bonusrun bonusup bonusstart rebonus tmaria shmaria shwp shredis alpine help bonusbuild
+
