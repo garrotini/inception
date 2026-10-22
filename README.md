@@ -115,5 +115,5 @@ if missing; needs `sudo`). Full stop/start/reset lifecycle and troubleshooting i
 - review and debug the Makefile, compose file and Dockerfiles
 - help with idempotency throughout the whole project 
 - draft and proofread these documentation files
-- nourishable discussion for learning 
+- nourishable discussion for learning purposes
 
