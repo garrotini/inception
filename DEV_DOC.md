@@ -139,8 +139,9 @@ Verify with `docker volume inspect <name>` → `Mountpoint` resolves under
 Example — serve NGINX on 8443 instead of 443:
 
 1. edit `srcs/docker-compose.yml`: `ports: - "8443:443"`
-2. rebuild & restart the stack: `make` (or `docker compose -f srcs/docker-compose.yml up -d --build nginx`)
-3. verify: `https://cmanuel-.42.fr:8443` works; container keeps listening on 443
+2. also, change the `.env` file so that `DOMAIN_NAME=cmanuel-.42.fr:8443`
+3. rebuild & restart the stack: `make` (or `docker compose -f srcs/docker-compose.yml up -d --build nginx`)
+4. verify: `https://cmanuel-.42.fr:8443` works; container keeps listening on 443
    internally (nothing else changed — networks/links are by service name).
 
 Same pattern for bonus ports (`8080/8081/9443/21/21000-21010`), the `WP_TITLE`,
