@@ -30,7 +30,7 @@ env:
 	@[ -f secrets/db_password.txt ] || { umask 077 && openssl rand -hex 16 > secrets/db_password.txt; }
 	@[ -f secrets/db_root_password.txt ] || { umask 077 && openssl rand -hex 16 > secrets/db_root_password.txt; }
 	@[ -f secrets/credentials.txt ] || { umask 077 && openssl rand -hex 16 > secrets/credentials.txt && openssl rand -hex 16 >> secrets/credentials.txt; }
-	@[ -f srcs/.env ] || cp srcs/_example srcs/.env
+	@[ -f srcs/.env ] || cp srcs/_example srcs/.env || cp ~/_example srcs/.env || ~/.env srcs/.env
 	@grep -qs "cmanuel-.42.fr" /etc/hosts || echo "127.0.0.1	cmanuel-.42.fr" | sudo tee -a /etc/hosts
 
 build: 
