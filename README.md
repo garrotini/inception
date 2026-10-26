@@ -92,8 +92,17 @@ volume semantics, bind storage location.
 
 ## Instructions
 
+### at 42 Local Machine
+
+clone the repo:
+```
+git clone <your_repo> inception
+rsync -av inception ~/.env <VM_IP>:/home/<USERNAME>/
+```
+
+### at VM 
+
 ```sh
-git clone <your repo> && cd <repo>
 make            # build + start the mandatory stack (mariadb, wordpress, nginx)
 make bonus      # instead: everything, including bonus services
 ```
