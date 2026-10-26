@@ -10,6 +10,6 @@ WP_ADMIN=capitan
 WP_ADMIN_EMAIL=capitan@cmanuel.42.fr
 WP_USER=user
 WP_USER_EMAIL=user@cmanuel.42.fr
-WP_TITLE="WP Title"
+WP_TITLE="Inception by `cmanuel-`"
 
 FTP_USER=ftpuser
